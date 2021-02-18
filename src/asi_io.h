@@ -64,6 +64,8 @@ void * image_at (image_type image, int i, int j);
 
 /* Import */
 int image_read_pnm_header(pnm_header_type *header, const char* filename);
+int image_read_pnm_body(image_type *image, const char* filename,
+        int header_length);
 int image_read_pgm (image_type *image, const char *filename);
 
 #endif

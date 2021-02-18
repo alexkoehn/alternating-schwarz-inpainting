@@ -140,6 +140,7 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
         free(buffer);
         fclose(file);
         return ASI_EXIT_INVALID_IMG_DIM;
+    }
 
     /* Parse value depth (only defined for .pgm) */
     if (header->ftype == PNM_P1 || header->ftype == PNM_P4)
@@ -186,13 +187,19 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
     return ASI_EXIT_SUCCESS;
 }
 
+int image_read_pnm_body (image_type *image, const char *filename,
+        int header_length)
+{
+    // TODO not implemented yet
+   
+    return ASI_EXIT_SUCCESS;
+}
 
 int image_read_pgm (image_type *image, const char *filename)
 {
     int ret;
-    FILE *file;
-    char buffer[256];
     pnm_header_type header;
+    dtype_enum dtype;
 
     /* Parse PNM header */
     ret = image_read_pnm_header(&header, filename);
@@ -202,6 +209,31 @@ int image_read_pgm (image_type *image, const char *filename)
         return ret;
     }
 
+    /* Determine data type from file type */
+    if (header.ftype == PNM_P3 || header.ftype == PNM_P6)
+    {
+        dtype = ASI_DTYPE_INT_RGB;
+    }
+    else
+    {
+        dtype = ASI_DTYPE_INT;
+    }
+
+    /* Initialise image */
+    ret = image_init(image, header.width, header.height, dtype);
+
+    if (ret != ASI_EXIT_SUCCESS)
+    {
+        return ret;
+    }
+
+    /* Read PNM body */
+    ret = image_read_pnm_body(image, filename, header.header_length);
+
+    if (ret != ASI_EXIT_SUCCESS)
+    {
+        return ret;
+    }
 
     return ASI_EXIT_SUCCESS;
 }
