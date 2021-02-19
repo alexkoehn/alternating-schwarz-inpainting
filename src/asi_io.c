@@ -1,6 +1,7 @@
 #include "asi_io.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int image_init (image_type *image, int width, int height, dtype_enum dtype)
 {
@@ -11,7 +12,7 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
     /* Allocate memory for integer image */
     if (dtype == ASI_DTYPE_INT)
     {
-        image->data = (int *) malloc(width * height * sizeof(int));
+        image->data = (int *) calloc(width * height, sizeof(int));
 
         if (image->data == NULL)
         {
@@ -24,7 +25,7 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
     /* Allocate memory for double image */
     if (dtype == ASI_DTYPE_DOUBLE)
     {
-        image->data = (double *) malloc(width * height * sizeof(double));
+        image->data = (double *) calloc(width * height, sizeof(double));
 
         if (image->data == NULL)
         {
@@ -40,16 +41,13 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
 int image_read_pnm_header(pnm_header_type *header, const char* filename)
 {
     FILE *file;
-    char *buffer;
-
-    buffer = (char*) malloc(256 * sizeof(char));
+    char buffer[256];
 
     /* Attempt to open file */
     file = fopen(filename, "rb");
 
     if (!file)
     {
-        free(buffer);
         return ASI_EXIT_FILE_NOT_FOUND;
     }
 
@@ -59,7 +57,6 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
     /* Parse file type */
     if (fgets(buffer, 256, file) == NULL)
     {
-        free(buffer);
         fclose(file);
         return ASI_EXIT_INVALID_FTYPE;
     }
@@ -69,7 +66,6 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
     {
         if (fgets(buffer, 256, file) == NULL)
         {
-            free(buffer);
             fclose(file);
             return ASI_EXIT_INVALID_FTYPE;
         }
@@ -100,7 +96,6 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
                 header->ftype = PNM_P6;
                 break;
             default :
-                free(buffer);
                 fclose(file);
                 return ASI_EXIT_INVALID_FTYPE;
         }
@@ -108,14 +103,12 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
     else
     {
         fclose(file);
-        free(buffer);
         return ASI_EXIT_INVALID_FTYPE;
     }
 
     /* Parse image dimensions */
     if (fgets(buffer, 256, file) == NULL)
     {
-        free(buffer);
         fclose(file);
         return ASI_EXIT_INVALID_FTYPE;
     }
@@ -125,7 +118,6 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
     {
         if (fgets(buffer, 256, file) == NULL)
         {
-            free(buffer);
             fclose(file);
             return ASI_EXIT_INVALID_FTYPE;
         }
@@ -137,7 +129,6 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
 
     if (header->width < 1 || header->height < 1)
     {
-        free(buffer);
         fclose(file);
         return ASI_EXIT_INVALID_IMG_DIM;
     }
@@ -151,7 +142,6 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
     {
         if (fgets(buffer, 256, file) == NULL)
         {
-            free(buffer);
             fclose(file);
             return ASI_EXIT_INVALID_FTYPE;
         }
@@ -160,7 +150,6 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
 
         if (header->data_depth <= 0)
         {
-            free(buffer);
             fclose(file);
             return ASI_EXIT_INVALID_DDEPTH;
         }
@@ -181,18 +170,63 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
         }
     }
     
-    free(buffer);
     fclose(file);
 
     return ASI_EXIT_SUCCESS;
 }
 
 int image_read_pnm_body (image_type *image, const char *filename,
-        int header_length)
+        pnm_header_type header)
 {
-    // TODO not implemented yet
+    int px_count;
+    int i;
+    FILE *file;
+    char buffer[256];
+
+    if (header.ftype == PNM_P2)
+    {
+        /* Open file */
+        file = fopen(filename, "r");
+
+        if (!file)
+        {
+            return ASI_EXIT_FILE_NOT_FOUND;
+        }
+
+        /* Skip header */
+        for (i = 0; i < header.header_length; i++)\
+        {
+            if (fgets(buffer, 256, file) == NULL)
+            {
+                return ASI_EXIT_FAILURE;
+            }
+        }
+
+        /* Iterate over file body */
+        px_count = 0;
+
+        while (fgets(buffer, 256, file))
+        {
+            /* Split string in case multiple pixel values per line exist */
+            char *token;
+            token = strtok(buffer, " ");
+
+            /* Iterate over tokens and parse pixel values */
+            while (token != NULL)
+            {
+                int value = (int) strtol(token, &token, 10);
+                *((int*)image->data + px_count) = value;
+
+                token = strtok(NULL, " ");
+                px_count++;
+            }
+        }
+
+        fclose(file);
+        return ASI_EXIT_SUCCESS;
+    }
    
-    return ASI_EXIT_SUCCESS;
+    return ASI_EXIT_INVALID_FTYPE;
 }
 
 int image_read_pgm (image_type *image, const char *filename)
@@ -228,7 +262,7 @@ int image_read_pgm (image_type *image, const char *filename)
     }
 
     /* Read PNM body */
-    ret = image_read_pnm_body(image, filename, header.header_length);
+    ret = image_read_pnm_body(image, filename, header);
 
     if (ret != ASI_EXIT_SUCCESS)
     {

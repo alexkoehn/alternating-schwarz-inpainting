@@ -29,13 +29,6 @@ typedef enum pnm_ftype
     PNM_P6
 } pnm_ftype_enum;
 
-typedef struct rgb_tuple
-{
-    void *r;
-    void *g;
-    void *b;
-} rgb_tuple_type;
-
 /* Image data structure */
 typedef struct image
 {
@@ -43,7 +36,6 @@ typedef struct image
     int width;  /* Image width (Number of columns) */
     int height; /* Image height (Number of rows) */
     dtype_enum dtype; /* Image data type */
-    int has_colour; /* Boolean to indicate colour image */
 } image_type;
 
 typedef struct pnm_header
@@ -60,12 +52,12 @@ int image_init (image_type *image, int width, int height,
         dtype_enum dtype);
 
 /* Access image data using x and y coordinates */
-void * image_at (image_type image, int i, int j);
+//void * image_at (image_type image, int i, int j);
 
 /* Import */
 int image_read_pnm_header(pnm_header_type *header, const char* filename);
 int image_read_pnm_body(image_type *image, const char* filename,
-        int header_length);
+        pnm_header_type header);
 int image_read_pgm (image_type *image, const char *filename);
 
 #endif
