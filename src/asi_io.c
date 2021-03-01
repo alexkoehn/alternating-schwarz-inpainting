@@ -178,13 +178,15 @@ int image_read_pnm_header(pnm_header_type *header, const char* filename)
 int image_read_pnm_body (image_type *image, const char *filename,
         pnm_header_type header)
 {
-    int px_count;
-    int i;
     FILE *file;
-    char buffer[256];
+    int i;
 
+    /* Load ASCII-coded pgm file */
     if (header.ftype == PNM_P2)
     {
+        char buffer[256];
+        int px_count;
+
         /* Open file */
         file = fopen(filename, "r");
 
@@ -221,6 +223,57 @@ int image_read_pnm_body (image_type *image, const char *filename,
                 px_count++;
             }
         }
+
+        fclose(file);
+        return ASI_EXIT_SUCCESS;
+    }
+    /* Load binary pgm file */
+    else if (header.ftype == PNM_P5)
+    {
+        char *buffer;
+        size_t buffer_size;
+        char header_char;
+
+        /* Open file in binary mode */
+        file = fopen(filename, "rb");
+
+        if (!file)
+        {
+            return ASI_EXIT_FILE_NOT_FOUND;
+        }
+        
+        /* Skip header */
+        i = 0;
+        while (i < header.header_length)
+        {
+            header_char = fgetc(file);
+
+            /* Increment i if parsed chars correspond to line break */
+            if (header_char == '\n')
+            {
+                i++;
+            }
+            else if (header_char == EOF)
+            {
+                return ASI_EXIT_FAILURE;
+            }
+        }
+
+        /* Allocate memory for file body */
+        buffer_size = header.width * header.height * sizeof(char);
+        buffer = (char *) malloc(buffer_size);
+
+        /* Parse file body */
+        fread(buffer, buffer_size, 1, file);
+
+        /* Convert chars to intensity values */
+        for (i = 0; i < header.width * header.height; i++)
+        {
+            *((int*)image->data + i) = ((int) buffer[i]) + 256; //TODO weirdly we have to add 256 to get correct number
+        }
+
+        /* Free buffer memory */
+        free(buffer);
 
         fclose(file);
         return ASI_EXIT_SUCCESS;
