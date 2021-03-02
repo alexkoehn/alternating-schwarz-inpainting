@@ -9,10 +9,13 @@
 #define ASI_EXIT_INVALID_DDEPTH 103
 #define ASI_EXIT_INVALID_IMG_DIM 104
 #define ASI_EXIT_FILE_NOT_FOUND 105
+#define ASI_EXIT_FILE_OPEN_FAILED 106
+#define ASI_NOT_IMPLEMENTED_YET 999
 
 /* Supported datatypes for image structs */
 typedef enum dtype
 {
+    ASI_DTYPE_BOOLEAN,
     ASI_DTYPE_INT,
     ASI_DTYPE_DOUBLE,
     ASI_DTYPE_INT_RGB,
@@ -58,6 +61,8 @@ int image_init (image_type *image, int width, int height,
 int image_read_pnm_header(pnm_header_type *header, const char* filename);
 int image_read_pnm_body(image_type *image, const char* filename,
         pnm_header_type header);
-int image_read_pgm (image_type *image, const char *filename);
+int image_read_pnm (image_type *image, const char *filename);
 
+/* Export */
+int image_write_pnm(image_type image, char* filename, int binary_mode);
 #endif
