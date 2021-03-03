@@ -3,41 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-int image_init (image_type *image, int width, int height, dtype_enum dtype)
-{
-    image->width = width;
-    image->height = height;
-    image->dtype = dtype;
-
-    /* Allocate memory for integer image */
-    if (dtype == ASI_DTYPE_INT)
-    {
-        image->data = (int *) calloc(width * height, sizeof(int));
-
-        if (image->data == NULL)
-        {
-            return ASI_EXIT_FAILED_ALLOC;
-        }
-
-        return ASI_EXIT_SUCCESS; 
-    }
-
-    /* Allocate memory for double image */
-    if (dtype == ASI_DTYPE_DOUBLE)
-    {
-        image->data = (double *) calloc(width * height, sizeof(double));
-
-        if (image->data == NULL)
-        {
-            return ASI_EXIT_FAILED_ALLOC;
-        }
-
-        return ASI_EXIT_SUCCESS; 
-    }
-
-    return ASI_EXIT_INVALID_DTYPE;
-}
-
 int image_read_pnm_header(pnm_header_type *header, const char* filename)
 {
     FILE *file;
