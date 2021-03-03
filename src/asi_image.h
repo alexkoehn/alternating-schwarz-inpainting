@@ -43,11 +43,11 @@ int image_iget(image_type image, int i, int j);
 double image_fget(image_type image, int i, int j);
 
 /* Writing image pixels */
-int image_iput(image_type image, int value, int i, int j);
-int image_fput(image_type image, double value, int i, int j);
+void image_iput(image_type image, int value, int i, int j);
+void image_fput(image_type image, double value, int i, int j);
 
 /* Image statistics */
-int image_imax(image_type image);
-int image_imin(image_type image);
+int image_imax(image_type image, int *max);
+int image_imin(image_type image, int *min);
 
 #endif

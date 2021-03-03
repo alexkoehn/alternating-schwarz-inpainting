@@ -229,6 +229,7 @@ int image_read_pnm_body (image_type *image, const char *filename,
         buffer = (char *) malloc(buffer_size);
 
         /* Parse file body */
+        //TODO seems to be faulty, some values are false
         fread(buffer, buffer_size, 1, file);
 
         /* Convert chars to intensity values */

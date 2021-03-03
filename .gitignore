@@ -3,3 +3,4 @@ examples/
 src/*.gch
 src/*.swp
 src/\\
+src/*.swo
