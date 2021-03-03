@@ -29,6 +29,8 @@ int image_read_pnm_body(image_type *image, const char* filename,
 int image_read_pnm (image_type *image, const char *filename);
 
 /* Export */
+int image_init_pnm_header(image_type image, pnm_header_type *header, 
+        int binary_mode);
 int image_write_pnm(image_type image, char* filename, int binary_mode);
 
 #endif

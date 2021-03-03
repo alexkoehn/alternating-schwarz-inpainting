@@ -291,21 +291,28 @@ int image_read_pnm (image_type *image, const char *filename)
     return ASI_EXIT_SUCCESS;
 }
 
-int image_write_pnm_header(image_type image, FILE *file)
+int image_init_pnm_header(image_type image, pnm_header_type *header, 
+        int binary_mode)
 {
-    /* Determine magic number */
-    char magic_number[3];
+    pnm_ftype_enum ftype; 
+    int min, max; /* Intensity minimum / maximum */
     
-    magic_number[0] = 'P';
-    magic_number[2] = '\0';
-
-    if (image.dtype == ASI_DTYPE_BOOLEAN)
+    /* Determine file type */
+    if (image.dtype == ASI_DTYPE_BOOLEAN && binary_mode == 0)
     {
-        magic_number[1] = '1'; 
+        ftype = PNM_P1; 
     }
-    else if (image.dtype == ASI_DTYPE_INT)
+    else if (image.dtype == ASI_DTYPE_BOOLEAN && binary_mode == 1)
     {
-        magic_number[2] = '2';
+        ftype = PNM_P2;
+    }
+    else if (image.dtype == ASI_DTYPE_INT && binary_mode == 0)
+    {
+        ftype = PNM_P3;
+    }
+    else if (image.dtype == ASI_DTYPE_INT && binary_mode == 1)
+    {
+        ftype = PNM_P4;
     }
     else
     {
@@ -313,10 +320,20 @@ int image_write_pnm_header(image_type image, FILE *file)
     }
 
     /* Determine minimum and maximum */
-    // TODO if minimum and or maximum below zero, return error
+    image_imin(image, &min); 
+    image_imax(image, &max);
+
+    /* Check that values are positive */
+    if (min < 0 || max < 0)
+    {
+        return ASI_EXIT_INVALID_VALUE;
+    }
    
-    /* Write header to file */
-    // TODO handle case writing failed
+    /* Write to header struct */
+    header->ftype = ftype;
+    header->width = image.width;
+    header->height = image.height;
+    header->data_depth = max;
 
     return ASI_EXIT_SUCCESS;
 }
@@ -325,13 +342,17 @@ int image_write_pnm(image_type image, char* filename, int binary_mode)
 {
     int ret;
     FILE *file;
+    pnm_header_type header;
 
-    //TODO currently supports only pbm and pgm export
-    if (image.dtype != ASI_DTYPE_BOOLEAN && image.dtype != ASI_DTYPE_INT)
+    /* Prepare header */
+    ret = image_init_pnm_header(image, &header, binary_mode); 
+
+    if (ret != ASI_EXIT_SUCCESS)
     {
-        return ASI_NOT_IMPLEMENTED_YET;
+        return ret;
     }
 
+    /* Write file */
     if (binary_mode == 1)
     {
         //file = fopen(filename, "wb");
@@ -347,18 +368,29 @@ int image_write_pnm(image_type image, char* filename, int binary_mode)
         }
 
         /* Write header */
-        ret = image_write_pnm_header(image, file); 
-
-        if (ret == ASI_EXIT_INVALID_DTYPE)
+        if (header.ftype == PNM_P1)
         {
-            fclose(file);
-            return ret;
+            fprintf(file, "P1\n");
+            fprintf(file, "%d %d\n", image.width, image.height);
         }
+        else if (header.ftype == PNM_P3)
+        {
+            fprintf(file, "P3\n");
+            fprintf(file, "%d %d\n", image.width, image.height);
+            fprintf(file, "%d\n", header.data_depth);
+        }
+        else
+        {
+            //TODO should not be reached
+            return ASI_NOT_IMPLEMENTED_YET;
+        }
+        //TODO
 
         /* Write image */
         //TODO
     }
-    
+   
+    fclose(file); 
     return ASI_EXIT_SUCCESS;
 }
 
