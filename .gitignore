@@ -1,3 +1,5 @@
 *.out
 examples/
 src/*.gch
+src/*.swp
+src/\\
