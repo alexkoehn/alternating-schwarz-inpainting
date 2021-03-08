@@ -9,7 +9,7 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
     image->dtype = dtype;
 
     /* Allocate memory for integer image */
-    if (dtype == ASI_DTYPE_INT)
+    if (dtype == ASI_DTYPE_INT || dtype == ASI_DTYPE_BOOLEAN)
     {
         image->data = (int *) calloc(width * height, sizeof(int));
 
@@ -32,6 +32,32 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
         }
 
         return ASI_EXIT_SUCCESS; 
+    }
+
+    /* Allocate memory for integer-valued RGB image */
+    if (dtype == ASI_DTYPE_INT_RGB) 
+    {
+        image->data = (int *) calloc(width * height * 3, sizeof(int));
+
+        if (image->data == NULL)
+        {
+            return ASI_EXIT_FAILED_ALLOC;
+        }
+
+        return ASI_EXIT_SUCCESS;
+    }
+
+    /* Allocate memory for double-valued RGB image */
+    if (dtype == ASI_DTYPE_DOUBLE_RGB) 
+    {
+        image->data = (double *) calloc(width * height * 3, sizeof(double));
+
+        if (image->data == NULL)
+        {
+            return ASI_EXIT_FAILED_ALLOC;
+        }
+
+        return ASI_EXIT_SUCCESS;
     }
 
     return ASI_EXIT_INVALID_DTYPE;

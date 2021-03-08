@@ -41,7 +41,9 @@ int image_delete (image_type *image);
 
 /* Accessing image pixels */
 int image_get(image_type image, int i, int j);
+int * image_cget(image_type image, int i, int j);
 double image_fget(image_type image, int i, int j);
+double * image_cfget(image_type image, int i, int j);
 
 /* Writing image pixels */
 void image_put(image_type image, int value, int i, int j);
