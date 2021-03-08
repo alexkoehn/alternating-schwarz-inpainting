@@ -37,13 +37,13 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
     return ASI_EXIT_INVALID_DTYPE;
 }
 
-int image_iget(image_type image, int i, int j)
+int image_get(image_type image, int i, int j)
 {
     /* 'Quick 'n dirty' accessing, no sanity checks */
     return *((int*) image.data + i * image.width + j);  
 }
 
-int image_imax(image_type image, int *max)
+int image_max(image_type image, int *max)
 {
     int i, j; /* Iteration variables */
     int temp_max; /* Temporary maximum */
@@ -62,7 +62,7 @@ int image_imax(image_type image, int *max)
     {
         for (j = 0; j < image.width; j++)
         {
-            value = image_iget(image, i, j);
+            value = image_get(image, i, j);
 
             if (value > temp_max)
             {
@@ -76,7 +76,7 @@ int image_imax(image_type image, int *max)
     return ASI_EXIT_SUCCESS;
 }
     
-int image_imin(image_type image, int *min)
+int image_min(image_type image, int *min)
 {
     int i, j; /* Iteration variables */
     int temp_min; /* Temporary minimum */
@@ -95,7 +95,7 @@ int image_imin(image_type image, int *min)
     {
         for (j = 0; j < image.width; j++)
         {
-            value = image_iget(image, i, j);
+            value = image_get(image, i, j);
 
             if (value < temp_min)
             {

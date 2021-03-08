@@ -304,15 +304,15 @@ int image_init_pnm_header(image_type image, pnm_header_type *header,
     }
     else if (image.dtype == ASI_DTYPE_BOOLEAN && binary_mode == 1)
     {
-        ftype = PNM_P2;
+        ftype = PNM_P4;
     }
     else if (image.dtype == ASI_DTYPE_INT && binary_mode == 0)
     {
-        ftype = PNM_P3;
+        ftype = PNM_P2;
     }
     else if (image.dtype == ASI_DTYPE_INT && binary_mode == 1)
     {
-        ftype = PNM_P4;
+        ftype = PNM_P5;
     }
     else
     {
@@ -320,8 +320,8 @@ int image_init_pnm_header(image_type image, pnm_header_type *header,
     }
 
     /* Determine minimum and maximum */
-    image_imin(image, &min); 
-    image_imax(image, &max);
+    image_min(image, &min); 
+    image_max(image, &max);
 
     /* Check that values are positive */
     if (min < 0 || max < 0)
@@ -343,6 +343,7 @@ int image_write_pnm(image_type image, char* filename, int binary_mode)
     int ret;
     FILE *file;
     pnm_header_type header;
+    int i, j; /* Iteration variables */
 
     /* Prepare header */
     ret = image_init_pnm_header(image, &header, binary_mode); 
@@ -373,9 +374,9 @@ int image_write_pnm(image_type image, char* filename, int binary_mode)
             fprintf(file, "P1\n");
             fprintf(file, "%d %d\n", image.width, image.height);
         }
-        else if (header.ftype == PNM_P3)
+        else if (header.ftype == PNM_P2)
         {
-            fprintf(file, "P3\n");
+            fprintf(file, "P2\n");
             fprintf(file, "%d %d\n", image.width, image.height);
             fprintf(file, "%d\n", header.data_depth);
         }
@@ -387,7 +388,13 @@ int image_write_pnm(image_type image, char* filename, int binary_mode)
         //TODO
 
         /* Write image */
-        //TODO
+        for (i = 0; i < image.height; i++)
+        {
+            for (j = 0; j < image.width; j++)
+            {
+                fprintf(file, "%d\n", image_get(image, i, j));
+            }
+        }
     }
    
     fclose(file); 

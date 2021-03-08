@@ -40,15 +40,15 @@ int image_init (image_type *image, int width, int height,
 int image_delete (image_type *image);
 
 /* Accessing image pixels */
-int image_iget(image_type image, int i, int j);
+int image_get(image_type image, int i, int j);
 double image_fget(image_type image, int i, int j);
 
 /* Writing image pixels */
-void image_iput(image_type image, int value, int i, int j);
+void image_put(image_type image, int value, int i, int j);
 void image_fput(image_type image, double value, int i, int j);
 
 /* Image statistics */
-int image_imax(image_type image, int *max);
-int image_imin(image_type image, int *min);
+int image_max(image_type image, int *max);
+int image_min(image_type image, int *min);
 
 #endif
