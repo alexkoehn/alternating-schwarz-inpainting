@@ -63,10 +63,51 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
     return ASI_EXIT_INVALID_DTYPE;
 }
 
+int image_copy (const image_type image_master, image_type *image_copy)
+{
+    int i, j; /* Iteration variables */
+    int ret; /* Return value */
+
+    // TODO right now only for int valued greyscale images 
+    if (image_master.dtype != ASI_DTYPE_INT 
+            && image_master.dtype != ASI_DTYPE_BOOLEAN) 
+    {
+        return ASI_NOT_IMPLEMENTED_YET;
+    }
+
+    /* Initialise copy */
+    ret = image_init(image_copy, image_master.width, image_master.height, 
+            image_master.dtype); 
+
+    if (ret != ASI_EXIT_SUCCESS)
+    {
+        return ret;
+    }
+
+    //TODO accomodate other dtypes
+    /* Copy image pixel by pixel */
+    for (int i = 0; i < image_master.height; i++)
+    {
+        for (int j = 0; j < image_master.width; j++)
+        {
+            int value = image_get(image_master, i, j);
+            image_put(*image_copy, value, i, j);
+        }
+    }
+
+    return ASI_EXIT_SUCCESS;
+}
+
 int image_get(image_type image, int i, int j)
 {
     /* 'Quick 'n dirty' accessing, no sanity checks */
     return *((int*) image.data + i * image.width + j);  
+}
+
+void image_put(image_type image, int value, int i, int j)
+{
+    *((int*) image.data + i * image.width + j) = value;
+
 }
 
 int image_max(image_type image, int *max)

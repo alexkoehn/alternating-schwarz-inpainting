@@ -36,6 +36,9 @@ typedef struct image
 int image_init (image_type *image, int width, int height, 
         dtype_enum dtype);
 
+/* Initialise new image struct by copying existing one */
+int image_copy (const image_type image_master, image_type *image_copy);
+
 /* Free memory */
 int image_delete (image_type *image);
 
