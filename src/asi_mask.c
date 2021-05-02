@@ -1,5 +1,4 @@
 #include "asi_mask.h"
-#include <math.h>
 
 int floyd_steinberg_dithering(const image_type image, image_type 
         *image_dithered)
@@ -50,6 +49,8 @@ int floyd_steinberg_dithering(const image_type image, image_type
             error = value_old - value_new;
 
             /* Propagate error */
+            // TODO Since images are int-valued, error will be slightly different
+            // compared to real-valued images
             if (j < image.width-1)
             {
                 value = image_get(*image_dithered, i, j+1);
