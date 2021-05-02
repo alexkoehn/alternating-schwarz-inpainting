@@ -110,6 +110,51 @@ void image_put(image_type image, int value, int i, int j)
 
 }
 
+int image_mirror_boundary_x(image_type image, int j)
+{
+    // Only supports mirroring for indices within +- width of image bounds
+    if (j >= 0 && j < image.width)
+    {
+        return j;
+    }
+    else if (j < 0 && j >= -image.width)
+    {
+        return -j - 1;
+    }
+    else if (j > image.width-1 && j <= 2 * image.width - 1)
+    {
+        return  2 * image.width - j - 1;
+    }
+    else
+    {
+        // Case: index cannot be mirrored because it is too far away
+        return ASI_EXIT_OUT_OF_BOUNDS;
+    }
+}
+
+
+int image_mirror_boundary_y(image_type image, int i)
+{
+    // Only supports mirroring for indices within +- height of image bounds
+    if (i >= 0 && i < image.height)
+    {
+        return i;
+    }
+    else if (i < 0 && i >= -image.height)
+    {
+        return -i - 1;
+    }
+    else if (i > image.height-1 && i <= 2 * image.height - 1)
+    {
+        return  2 * image.height - i - 1;
+    }
+    else
+    {
+        // Case: index cannot be mirrored because it is too far away
+        return ASI_EXIT_OUT_OF_BOUNDS;
+    }
+}
+
 int image_max(image_type image, int *max)
 {
     int i, j; /* Iteration variables */

@@ -1,4 +1,5 @@
 #include "asi_mask.h"
+#include <math.h>
 
 int floyd_steinberg_dithering(const image_type image, image_type 
         *image_dithered)
@@ -6,6 +7,7 @@ int floyd_steinberg_dithering(const image_type image, image_type
     int i, j; /* Iteration variables */
     int ret; /* Return value */
     int value_old, value_new; /* Temporary pixel values */
+    int value; /* Pixel value of neighbouring pixels */
     int error; /* Quantisation error */
 
     //TODO implement Floyd-Steinberg for colour images
@@ -24,12 +26,13 @@ int floyd_steinberg_dithering(const image_type image, image_type
     }
 
     /* Proceed through image starting from the top left */
-    for (i = 0; i < image.height - 1; i++)
+    for (i = 0; i < image.height; i++)
     {
-        //TODO j = 1, probably need to mirror image at boundary 
-        for (j = 1; j < image.width - 1; j++)
+        for (j = 0; j < image.width; j++)
         {
             value_old = image_get(*image_dithered, i, j);
+
+            /* Put new value depending on if it is closer to 0 or 255 */
             value_new;
             
             if (value_old > 127)
@@ -38,25 +41,43 @@ int floyd_steinberg_dithering(const image_type image, image_type
             }
             else
             {
-                value_new = 255;
+                value_new = 0;
             }
 
+            image_put(*image_dithered, value_new, i, j);
+
+            /* Compute error */
             error = value_old - value_new;
 
-            //TODO clean-up here
             /* Propagate error */
-            image_put(*image_dithered, 
-                    image_get(*image_dithered, i, j+1) + error * 7.0 / 16.0, 
-                    i, j+1);
-            image_put(*image_dithered, 
-                    image_get(*image_dithered, i+1, j-1) + error * 3.0 / 16.0, 
-                    i+1, j-1);
-            image_put(*image_dithered, 
-                    image_get(*image_dithered, i+1, j) + error * 5.0 / 16.0, 
-                    i+1, j);
-            image_put(*image_dithered, 
-                    image_get(*image_dithered, i+1, j+1) * error * 1.0 / 16.0, 
-                    i+1, j+1);
+            if (j < image.width-1)
+            {
+                value = image_get(*image_dithered, i, j+1);
+                image_put(*image_dithered, 
+                        value + error * 7.0 / 16.0, 
+                        i, j+1);
+            }
+            if (i < image.height-1)
+            {
+                value = image_get(*image_dithered, i+1, j);
+                image_put(*image_dithered, 
+                        value + error * 5.0 / 16.0, 
+                        i+1, j);
+            }
+            if (j > 0 && i < image.height-1)
+            {
+                
+                value = image_get(*image_dithered, i+1, j-1);
+                image_put(*image_dithered, 
+                        value + error * 3.0 / 16.0, 
+                        i+1, j-1);
+            }
+            if (j < image.width-1 && i < image.height-1)
+            {
+                value = image_get(*image_dithered, i+1, j+1);
+                image_put(*image_dithered, value + error * 1.0 / 16.0, 
+                        i+1, j+1);
+            }
         }
     }
 

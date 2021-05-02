@@ -11,6 +11,7 @@
 #define ASI_EXIT_INVALID_VALUE 105
 #define ASI_EXIT_FILE_NOT_FOUND 106
 #define ASI_EXIT_FILE_OPEN_FAILED 107
+#define ASI_EXIT_OUT_OF_BOUNDS -99
 #define ASI_NOT_IMPLEMENTED_YET 999
 
 /* Supported datatypes for image structs */
@@ -51,6 +52,11 @@ double * image_cfget(image_type image, int i, int j);
 /* Writing image pixels */
 void image_put(image_type image, int value, int i, int j);
 void image_fput(image_type image, double value, int i, int j);
+
+/* Boundary handling for indices */
+int image_mirror_boundary_x(image_type image, int j);
+int image_mirror_boundary_y(image_type image, int i);
+
 
 /* Image statistics */
 int image_max(image_type image, int *max);
