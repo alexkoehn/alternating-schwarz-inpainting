@@ -35,17 +35,68 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
             return ASI_EXIT_INVALID_ARG_COUNT;
         }
 
-        /* Compute size of kernel */
+        /* Size of kernel: Gaussian is separable so a 1D Gaussian suffices */
         int h_size = (int) round(sigma * 2.0);
         kernel->width = 2 * h_size + 1;
-        kernel->height = 2 * h_size + 1;
+        kernel->height = 1;
 
         /* Initialise kernel */
         kernel->weights = (double *) calloc (kernel->width * kernel->height, 
                 sizeof(double));
 
-        //TODO fill weight matrix
+        //Fill weight matrix
+        for (int i = -h_size; i <= h_size; i++)
+        {
+           kernel->weights[i] = 1.0 / (sigma * sqrt(2.0 * M_PI)) 
+                   * exp (-0.5 * i * i / (sigma * sigma));
+        }
+    }
+    /* Case: Kernel is a Sobel filter in x direction */
+    else if (name == ASI_SOBEL_X)
+    {
+        kernel->width = 3;
+        kernel->height = 3;
+
+        /* Initialise kernel */
+        kernel->weights = (double *) calloc (kernel->width * kernel->height, 
+                sizeof(double));
+
+        /* Fill weight matrix */
+        kernel->weights[0] = -1.0;
+        kernel->weights[2] = 1.0;
+        kernel->weights[3] = -2.0;
+        kernel->weights[5] = 2.0;
+        kernel->weights[6] = -1.0;
+        kernel->weights[8] = 1.0;
+    }
+    /* Case: Kernel is a Sobel filter in y direction */
+    else if (name == ASI_SOBEL_Y) 
+    {
+        kernel->width = 3;
+        kernel->height = 3;
+
+        /* Initialise kernel */
+        kernel->weights = (double *) calloc (kernel->width * kernel->height, 
+                sizeof(double));
+
+        /* Fill weight matrix */
+        kernel->weights[0] = -1.0;
+        kernel->weights[1] = -2.0;
+        kernel->weights[2] = -1.0;
+        kernel->weights[6] = 1.0;
+        kernel->weights[7] = 2.0;
+        kernel->weights[8] = 1.0;
+    }
+    /* Case: Kernel is a Laplacian */
+    else if (name == ASI_LAPLACIAN)
+    {
+        //TODO
+        return ASI_NOT_IMPLEMENTED_YET;
+    }
+    else
+    {
+        return ASI_NOT_IMPLEMENTED_YET;
     }
 
-    return ASI_NOT_IMPLEMENTED_YET;
+    return ASI_EXIT_SUCCESS;
 }
