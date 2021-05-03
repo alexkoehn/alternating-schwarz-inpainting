@@ -25,9 +25,9 @@ typedef struct kernel
 int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...);
 
 /* Memory deallocation of a kernel */
-int kernel_delete(kernel_type *kernel);
+void kernel_delete(kernel_type *kernel);
 
 /* Convolution of an image with a kernel */
-int image_convolve(image_type image, kernel_type kernel);
+int image_convolve(image_type *image, kernel_type kernel);
 
 #endif

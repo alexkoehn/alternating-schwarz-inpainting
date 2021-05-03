@@ -39,6 +39,7 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
         int h_size = (int) round(sigma * 2.0);
         kernel->width = 2 * h_size + 1;
         kernel->height = 1;
+        kernel->name = name;
 
         /* Initialise kernel */
         kernel->weights = (double *) calloc (kernel->width * kernel->height, 
@@ -56,6 +57,7 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
     {
         kernel->width = 3;
         kernel->height = 3;
+        kernel->name = name;
 
         /* Initialise kernel */
         kernel->weights = (double *) calloc (kernel->width * kernel->height, 
@@ -74,6 +76,7 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
     {
         kernel->width = 3;
         kernel->height = 3;
+        kernel->name = name;
 
         /* Initialise kernel */
         kernel->weights = (double *) calloc (kernel->width * kernel->height, 
@@ -96,6 +99,70 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
     else
     {
         return ASI_NOT_IMPLEMENTED_YET;
+    }
+
+    return ASI_EXIT_SUCCESS;
+}
+
+/* Free memory of kernel */
+void kernel_delete(kernel_type *kernel)
+{
+    free(kernel->weights);
+
+    return;
+}
+
+/* Convolution of an image with a kernel */
+int image_convolve(image_type *image, kernel_type kernel)
+{
+    image_type image_temp; /* Temporary image for holding convolution results */
+    int i, j, k, l; /* Loop variables */
+    int i_shifted, j_shifted; /* Loop variables shifted by convolution */
+    int half_w, half_h; /* Half width and height of kernel */
+    
+    /* Initialise temporary image by zeros */
+    image_init(&image_temp, image->width, image->height, image->dtype);
+
+    //TODO implement separated 2d convolution
+    if (kernel.name == ASI_GAUSSIAN)
+    {
+        return ASI_NOT_IMPLEMENTED_YET;
+    }
+
+    half_w = (int) floor(kernel.width / 2.0);
+    half_h = (int) floor(kernel.height / 2.0);
+
+    /* Loop over image */
+    for (i = 0; i < image->height; i++)
+    {
+        for (j = 0; j < image->width; j++)
+        {
+            for (k = -half_h; k <= half_h; k++)
+            {
+                for (l = -half_w; l <= half_w; l++)
+                {
+                    /* Evaluate convolution at position (i,j) */
+                    i_shifted = image_mirror_boundary_y(*image, i+k);
+                    j_shifted = image_mirror_boundary_x(*image, j+l);
+                    double img_value 
+                        = (double) image_get(*image, i_shifted, j_shifted);
+                    double k_value = (double) kernel.weights[(k+half_h) 
+                        * kernel.height + l + half_w];
+                    
+                    image_put(image_temp, img_value * k_value, i, j);
+                }
+            }
+        }
+    }
+
+    //TODO create function for image_copy (without allocation)
+    for (i = 0; i < image->height; i++)
+    {
+        for (j = 0; j < image->width; j++)
+        {
+            double value = image_get(image_temp, i, j);
+            image_put(*image, value, i, j);
+        }
     }
 
     return ASI_EXIT_SUCCESS;
