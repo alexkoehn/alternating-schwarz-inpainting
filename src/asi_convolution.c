@@ -137,6 +137,8 @@ int image_convolve(image_type *image, kernel_type kernel)
     {
         for (j = 0; j < image->width; j++)
         {
+            double pixel_sum = 0.0;
+
             for (k = -half_h; k <= half_h; k++)
             {
                 for (l = -half_w; l <= half_w; l++)
@@ -148,8 +150,10 @@ int image_convolve(image_type *image, kernel_type kernel)
                         = (double) image_get(*image, i_shifted, j_shifted);
                     double k_value = (double) kernel.weights[(k+half_h) 
                         * kernel.height + l + half_w];
-                    
-                    image_put(image_temp, img_value * k_value, i, j);
+
+                    /* Add convolution result to pixel at location (i,j) */
+                    pixel_sum += img_value * k_value;
+                    image_put(image_temp, pixel_sum, i, j);
                 }
             }
         }
@@ -165,5 +169,7 @@ int image_convolve(image_type *image, kernel_type kernel)
         }
     }
 
+    // TODO cleanup
+    
     return ASI_EXIT_SUCCESS;
 }
