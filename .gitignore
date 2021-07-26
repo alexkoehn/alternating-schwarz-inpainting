@@ -1,6 +1,15 @@
-*.out
-examples/
+build/
+
+examples/*.pgm
+examples/*.gch
+examples/*.swp
+examples/*.swo
+
 src/*.gch
 src/*.swp
 src/\\
 src/*.swo
+
+*.swo
+*.swp
+*.gch
