@@ -93,8 +93,20 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
     /* Case: Kernel is a Laplacian */
     else if (name == ASI_LAPLACIAN)
     {
-        //TODO
-        return ASI_NOT_IMPLEMENTED_YET;
+        kernel->width = 3;
+        kernel->height = 3;
+        kernel->name = name;
+
+        /* Initialise kernel */
+        kernel->weights = (double *) calloc (kernel->width * kernel->height,
+                sizeof(double));
+
+        /* Fill weight matrix */
+        kernel->weights[1] = 1.0;
+        kernel->weights[3] = 1.0;
+        kernel->weights[4] = -4.0;
+        kernel->weights[5] = 1.0;
+        kernel->weights[7] = 1.0;
     }
     else
     {
