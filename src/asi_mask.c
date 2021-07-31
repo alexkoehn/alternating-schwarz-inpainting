@@ -168,6 +168,8 @@ int mask_belhachmi_init(const image_type image, image_type
         }
     }
 
+    abs_mean /= (image_f.height * image_f.width);
+
     /* Compute Lambda and multiply it pointwise with the image */
     //TODO mask is zero if lambda is multiplied with fval 
     lambda = compression_ratio * 255.0 / abs_mean;
@@ -177,7 +179,7 @@ int mask_belhachmi_init(const image_type image, image_type
         for (j = 0; j < image_f.width; j++)
         {
             fval = image_fget(image_f, i, j);
-            //image_fput(image_f, fval * lambda, i, j);
+            image_fput(image_f, fval * lambda, i, j);
         }
     }
     

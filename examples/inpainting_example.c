@@ -41,11 +41,11 @@ int main()
     image_copy(image_dithering, image_dithering_export);
     image_delete(&image_dithering);
 
-    return_code = image_write_pnm(image_dithering_export, "dithering.pgm", 0);
+    return_code = image_write_pnm(image_dithering_export, "examples/dithering.pgm", 0);
     printf("Return code: %d\n", return_code);
 
     image_type mask;
-    return_code = mask_belhachmi_init(image_f, &mask, 0.1);
+    return_code = mask_belhachmi_init(image_f, &mask, 0.05);
 
     if (return_code != ASI_EXIT_SUCCESS)
     {
@@ -56,7 +56,7 @@ int main()
     image_init(&image_export, image_f.width, image_f.height, ASI_DTYPE_INT);
     image_copy(mask, image_export);
 
-    return_code = image_write_pnm(image_export, "belhachmi_mask.pgm", 0);
+    return_code = image_write_pnm(image_export, "examples/belhachmi_mask.pgm", 0);
     printf("Return code: %d\n", return_code);
 
 
