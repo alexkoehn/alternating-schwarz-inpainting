@@ -170,21 +170,27 @@ void image_convolution_2d(const image_type src, image_type target,
 
             for (k = -half_h; k <= half_h; k++)
             {
+                /* Mirror shifted y coordinate if necessary */
+                i_shifted = image_mirror_boundary_y(src, i+k);
+
                 for (l = -half_w; l <= half_w; l++)
                 {
-                    /* Evaluate convolution at position (i+k,j+l) */
-                    i_shifted = image_mirror_boundary_y(src, i+k);
+                    /* Mirror shifted x coordinate if necessary */
                     j_shifted = image_mirror_boundary_x(src, j+l);
+
+                    /* Evaluate convolution at position (i+k,j+l) */
                     img_val 
                         = (double) image_get(src, i_shifted, j_shifted);
                     k_val = (double) kernel.weights[(k+half_h) 
                         * kernel.height + l + half_w];
 
-                    /* Add convolution result to pixel at location (i,j) */
+                    /* Add integrand to convolution sum */
                     conv_sum += img_val * k_val;
-                    image_put(target, conv_sum, i, j);
                 }
             }
+
+            /* Add convolution result to pixel at location (i,j) */
+            image_put(target, conv_sum, i, j);
         }
     }
 
@@ -204,8 +210,73 @@ void image_convolution_2d(const image_type src, image_type target,
 void image_convolution_2d_seperable(const image_type src, image_type target,
         const kernel_type kernel)
 {
-    //TODO
-   
+    int i, j, k; /* Loop variables */
+    int i_shifted, j_shifted; /* Loop variables shifted by convolution */
+    int half_w; /* Half width and height of kernel */
+    double conv_sum; /* Convolution integrand */
+    double img_val; /* Pixel value */
+    double k_val; /* Kernel weight value */
+    image_type tmp; /* Image to store intermediate convolution result */
+
+    half_w = (int) floor(kernel.width / 2.0);
+
+    /* Initialise temporary image */
+    image_init(&tmp, src.width, src.height, src.dtype);
+
+    /* Convolve in x direction first */
+    for (i = 0; i < src.height; i++)
+    {
+        for (j = 0; j < src.width; j++)
+        {
+            conv_sum = 0.0;
+
+            for (k = -half_w; k <= half_w; k++)
+            {
+                /* Mirror shifted x coordinate if necessary */
+                j_shifted = image_mirror_boundary_x(src, j+k);
+
+                /* Evaluate convolution at position (i, j+k) */
+                img_val = (double) image_get(src, i, j_shifted);
+                k_val = (double) kernel.weights[k + half_w];
+
+                /* Add integrand to convolution sum */
+                conv_sum += img_val * k_val;
+
+            }
+            
+            /* Add convolution result to pixel at location (i,j) */
+            image_put(tmp, conv_sum, i, j);
+        }
+    }
+
+    /* Convolve in y direction */
+    for (i = 0; i < src.height; i++)
+    {
+        for (j = 0; j < src.width; j++)
+        {
+            conv_sum = 0.0;
+
+            for (k = -half_w; k <= half_w; k++)
+            {
+                /* Mirror shifted y coordinate if necessary */
+                i_shifted = image_mirror_boundary_y(tmp, i+k);
+
+                /* Evaluate convolution at position (i, j+k) */
+                img_val = (double) image_get(tmp, i_shifted, j);
+                k_val = (double) kernel.weights[k + half_w];
+
+                /* Add integrand to convolution sum */
+                conv_sum += img_val * k_val;
+            }
+            
+            /* Add convolution result to pixel at location (i,j) */
+            image_put(target, conv_sum, i, j);
+        }
+    }
+
+    /* Remove temporary image */
+    image_delete(&tmp);
+
     return;
 }
 
@@ -247,7 +318,8 @@ int image_convolve(image_type *image, kernel_type kernel)
         }
     }
 
-    // TODO cleanup
+    /* Remove result image */
+    image_delete(&result);
     
     return ASI_EXIT_SUCCESS;
 }

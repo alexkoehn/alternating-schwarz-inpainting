@@ -4,14 +4,15 @@
 #define ASI_EXIT_SUCCESS 1
 #define ASI_EXIT_FAILURE 0
 #define ASI_EXIT_FAILED_ALLOC 100
-#define ASI_EXIT_INVALID_DTYPE 101
-#define ASI_EXIT_INVALID_FTYPE 102
-#define ASI_EXIT_INVALID_DDEPTH 103
-#define ASI_EXIT_INVALID_IMG_DIM 104
-#define ASI_EXIT_INVALID_VALUE 105
-#define ASI_EXIT_FILE_NOT_FOUND 106
-#define ASI_EXIT_FILE_OPEN_FAILED 107
-#define ASI_EXIT_INVALID_ARG_COUNT 108
+#define ASI_EXIT_FAILED_DEALLOC 101
+#define ASI_EXIT_INVALID_DTYPE 102
+#define ASI_EXIT_INVALID_FTYPE 103
+#define ASI_EXIT_INVALID_DDEPTH 104
+#define ASI_EXIT_INVALID_IMG_DIM 105
+#define ASI_EXIT_INVALID_VALUE 106
+#define ASI_EXIT_FILE_NOT_FOUND 107
+#define ASI_EXIT_FILE_OPEN_FAILED 108
+#define ASI_EXIT_INVALID_ARG_COUNT 109
 #define ASI_EXIT_OUT_OF_BOUNDS -99
 #define ASI_NOT_IMPLEMENTED_YET 999
 
@@ -42,7 +43,7 @@ int image_init (image_type *image, int width, int height,
 int image_copy (const image_type image_master, image_type *image_copy);
 
 /* Free memory */
-int image_delete (image_type *image);
+void image_delete (image_type *image);
 
 /* Accessing image pixels */
 int image_get(image_type image, int i, int j);

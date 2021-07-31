@@ -63,6 +63,17 @@ int image_init (image_type *image, int width, int height, dtype_enum dtype)
     return ASI_EXIT_INVALID_DTYPE;
 }
 
+/*
+ * Frees memory of an image
+ * @image   [ I ] Image to be deleted
+ */
+void image_delete (image_type *image)
+{
+    free(image->data);
+
+    return;
+}
+
 int image_copy (const image_type image_master, image_type *image_copy)
 {
     int i, j; /* Iteration variables */
