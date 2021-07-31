@@ -3,6 +3,16 @@
 #include <math.h>
 #include <stdlib.h>
 
+/*----------------------------------------------------------------------------*/
+
+/*
+ * Initialises a convolution kernel for a provided keyword and additional
+ * arguments.
+ * @kernel  [ O ] Convolution kernel
+ * @name    [ I ] Convolution kernel name 
+ * @argc    [ I ] Argument count (needs to be 0 if no arguments provided)
+ * @...     [ I ] Optional additional arguments
+ */
 int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
 {
     va_list args;
@@ -116,7 +126,12 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
     return ASI_EXIT_SUCCESS;
 }
 
-/* Free memory of kernel */
+/*----------------------------------------------------------------------------*/
+
+/*
+ * Free memory of kernel 
+ * @kernel  [ I ] Kernel to be disposed of
+ */
 void kernel_delete(kernel_type *kernel)
 {
     free(kernel->weights);
@@ -124,51 +139,102 @@ void kernel_delete(kernel_type *kernel)
     return;
 }
 
-/* Convolution of an image with a kernel */
-int image_convolve(image_type *image, kernel_type kernel)
+/*----------------------------------------------------------------------------*/
+
+/*
+ * Non-destructive 2D convolution of an image with a convolution kernel.
+ * @src     [ I ] Source image
+ * @target  [ O ] Target image, needs to be initialised beforehand
+ * @kernel  [ I ] 2D convolution kernel
+ */
+// TODO incorporate different datatypes
+void image_convolution_2d(const image_type src, image_type target, 
+        const kernel_type kernel)
 {
-    image_type image_temp; /* Temporary image for holding convolution results */
     int i, j, k, l; /* Loop variables */
     int i_shifted, j_shifted; /* Loop variables shifted by convolution */
     int half_w, half_h; /* Half width and height of kernel */
-    
-    /* Initialise temporary image by zeros */
-    image_init(&image_temp, image->width, image->height, image->dtype);
-
-    //TODO implement separated 2d convolution
-    if (kernel.name == ASI_GAUSSIAN)
-    {
-        return ASI_NOT_IMPLEMENTED_YET;
-    }
+    double conv_sum; /* Convolution integrand */
+    double img_val; /* Pixel value */
+    double k_val; /* Kernel weight value */
 
     half_w = (int) floor(kernel.width / 2.0);
     half_h = (int) floor(kernel.height / 2.0);
 
     /* Loop over image */
-    for (i = 0; i < image->height; i++)
+    for (i = 0; i < src.height; i++)
     {
-        for (j = 0; j < image->width; j++)
+        for (j = 0; j < src.width; j++)
         {
-            double pixel_sum = 0.0;
+            conv_sum = 0.0;
 
             for (k = -half_h; k <= half_h; k++)
             {
                 for (l = -half_w; l <= half_w; l++)
                 {
-                    /* Evaluate convolution at position (i,j) */
-                    i_shifted = image_mirror_boundary_y(*image, i+k);
-                    j_shifted = image_mirror_boundary_x(*image, j+l);
-                    double img_value 
-                        = (double) image_get(*image, i_shifted, j_shifted);
-                    double k_value = (double) kernel.weights[(k+half_h) 
+                    /* Evaluate convolution at position (i+k,j+l) */
+                    i_shifted = image_mirror_boundary_y(src, i+k);
+                    j_shifted = image_mirror_boundary_x(src, j+l);
+                    img_val 
+                        = (double) image_get(src, i_shifted, j_shifted);
+                    k_val = (double) kernel.weights[(k+half_h) 
                         * kernel.height + l + half_w];
 
                     /* Add convolution result to pixel at location (i,j) */
-                    pixel_sum += img_value * k_value;
-                    image_put(image_temp, pixel_sum, i, j);
+                    conv_sum += img_val * k_val;
+                    image_put(target, conv_sum, i, j);
                 }
             }
         }
+    }
+
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+
+/*
+ * Non-destructive 2D convolution leveraging the fact that some convolution
+ * kernels can be seperated in two 1D convolutions (in x and y direction, 
+ * respectively) which gives some speed-up over the standard 2D convolution.
+ * @src     [ I ] Source image
+ * @target  [ O ] Target image, needs to be initialised beforehand
+ * @kernel  [ I ] 1D convolution kernel
+ */
+void image_convolution_2d_seperable(const image_type src, image_type target,
+        const kernel_type kernel)
+{
+    //TODO
+   
+    return;
+}
+
+/*----------------------------------------------------------------------------*/
+
+/*
+ *  Destructive convolution (original image does not get preserved) of an image 
+ *  with a convolution kernel. Chooses the correct convolution procedure 
+ *  depending on provided convolution kernel. 
+ *  @image  [I/O] Image to be convolved 
+ *  @kernel [ I ] Convolution kernel
+ */
+// TODO Pointer to image needed?
+int image_convolve(image_type *image, kernel_type kernel)
+{
+    int i, j; /* Loop variables */
+    image_type result; /* Temporary image for holding convolution results */
+    
+    /* Initialise temporary image by zeros */
+    image_init(&result, image->width, image->height, image->dtype);
+
+    /* Check if kernel is a Gaussian (seperable in two 1D convolutions) */
+    if (kernel.name == ASI_GAUSSIAN)
+    {
+        return ASI_NOT_IMPLEMENTED_YET;
+    }
+    else
+    {
+        image_convolution_2d(*image, result, kernel);
     }
 
     //TODO create function for image_copy (without allocation)
@@ -176,7 +242,7 @@ int image_convolve(image_type *image, kernel_type kernel)
     {
         for (j = 0; j < image->width; j++)
         {
-            double value = image_get(image_temp, i, j);
+            double value = image_get(result, i, j);
             image_put(*image, value, i, j);
         }
     }
