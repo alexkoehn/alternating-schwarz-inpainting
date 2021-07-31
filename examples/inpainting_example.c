@@ -35,14 +35,14 @@ int main()
 
     // Convolve image
     kernel_type kernel;
-    return_code = kernel_init(&kernel, ASI_SOBEL_X, 0);
+    return_code = kernel_init(&kernel, ASI_GAUSSIAN, 2, 5.0, 2.0);
     printf("Return code: %d\n", return_code);
 
-    return_code = image_convolve(&image, kernel);
+    return_code = image_convolve(image, kernel);
     printf("Return code: %d\n", return_code);
 
     // Linearly scale result to range 0 to 255 to export
-    int min, max;
+    /*int min, max;
     image_max(image, &max);
     image_min(image, &min);
 
@@ -58,7 +58,7 @@ int main()
             int val = (int)floor(((double)image_get(image, i, j) - fmin) / range * 255.0);
             image_put(image, val, i, j);
         }
-    }
+    }*/
 
     return_code = image_write_pnm(image, "examples/sobel.pgm", 0);
 

@@ -46,7 +46,7 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
         }
 
         /* Size of kernel: Gaussian is separable so a 1D Gaussian suffices */
-        int h_size = (int) round(sigma * 2.0);
+        int h_size = (int) round(sigma * accuracy);
         kernel->width = 2 * h_size + 1;
         kernel->height = 1;
         kernel->name = name;
@@ -55,11 +55,19 @@ int kernel_init(kernel_type *kernel, kernel_name_enum name, int argc, ...)
         kernel->weights = (double *) calloc (kernel->width * kernel->height, 
                 sizeof(double));
 
-        //Fill weight matrix
+        /* Fill weight matrix */
+        double weight_sum = 0.0;
         for (int i = -h_size; i <= h_size; i++)
         {
-           kernel->weights[i] = 1.0 / (sigma * sqrt(2.0 * M_PI)) 
+           kernel->weights[i + h_size] = 1.0 / (sigma * sqrt(2.0 * M_PI)) 
                    * exp (-0.5 * i * i / (sigma * sigma));
+           weight_sum += kernel->weights[i + h_size];
+        }
+
+        /* Normalise weights such that they sum up to 1 */
+        for (int i = 0; i < kernel->width; i++)
+        {
+           kernel->weights[i] /= weight_sum; 
         }
     }
     /* Case: Kernel is a Sobel filter in x direction */
@@ -207,6 +215,7 @@ void image_convolution_2d(const image_type src, image_type target,
  * @target  [ O ] Target image, needs to be initialised beforehand
  * @kernel  [ I ] 1D convolution kernel
  */
+//TODO incorporate different datatypes
 void image_convolution_2d_seperable(const image_type src, image_type target,
         const kernel_type kernel)
 {
@@ -221,7 +230,7 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
     half_w = (int) floor(kernel.width / 2.0);
 
     /* Initialise temporary image */
-    image_init(&tmp, src.width, src.height, src.dtype);
+    image_init(&tmp, src.width, src.height, ASI_DTYPE_DOUBLE);
 
     /* Convolve in x direction first */
     for (i = 0; i < src.height; i++)
@@ -229,6 +238,7 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
         for (j = 0; j < src.width; j++)
         {
             conv_sum = 0.0;
+            double k_sum = 0.0;
 
             for (k = -half_w; k <= half_w; k++)
             {
@@ -242,10 +252,12 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
                 /* Add integrand to convolution sum */
                 conv_sum += img_val * k_val;
 
+                k_sum += k_val;
+
             }
             
             /* Add convolution result to pixel at location (i,j) */
-            image_put(tmp, conv_sum, i, j);
+            image_fput(tmp, conv_sum, i, j);
         }
     }
 
@@ -262,7 +274,7 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
                 i_shifted = image_mirror_boundary_y(tmp, i+k);
 
                 /* Evaluate convolution at position (i, j+k) */
-                img_val = (double) image_get(tmp, i_shifted, j);
+                img_val = (double) image_fget(tmp, i_shifted, j);
                 k_val = (double) kernel.weights[k + half_w];
 
                 /* Add integrand to convolution sum */
@@ -270,7 +282,7 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
             }
             
             /* Add convolution result to pixel at location (i,j) */
-            image_put(target, conv_sum, i, j);
+            image_fput(target, conv_sum, i, j);
         }
     }
 
@@ -290,31 +302,31 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
  *  @kernel [ I ] Convolution kernel
  */
 // TODO Pointer to image needed?
-int image_convolve(image_type *image, kernel_type kernel)
+int image_convolve(image_type image, const kernel_type kernel)
 {
     int i, j; /* Loop variables */
     image_type result; /* Temporary image for holding convolution results */
     
     /* Initialise temporary image by zeros */
-    image_init(&result, image->width, image->height, image->dtype);
+    image_init(&result, image.width, image.height, ASI_DTYPE_DOUBLE);
 
     /* Check if kernel is a Gaussian (seperable in two 1D convolutions) */
     if (kernel.name == ASI_GAUSSIAN)
     {
-        return ASI_NOT_IMPLEMENTED_YET;
+        image_convolution_2d_seperable(image, result, kernel);
     }
     else
     {
-        image_convolution_2d(*image, result, kernel);
+        image_convolution_2d(image, result, kernel);
     }
 
     //TODO create function for image_copy (without allocation)
-    for (i = 0; i < image->height; i++)
+    for (i = 0; i < image.height; i++)
     {
-        for (j = 0; j < image->width; j++)
+        for (j = 0; j < image.width; j++)
         {
-            double value = image_get(result, i, j);
-            image_put(*image, value, i, j);
+            double value = image_fget(result, i, j);
+            image_put(image, value, i, j);
         }
     }
 

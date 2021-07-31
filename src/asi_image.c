@@ -97,9 +97,9 @@ int image_copy (const image_type image_master, image_type *image_copy)
 
     //TODO accomodate other dtypes
     /* Copy image pixel by pixel */
-    for (int i = 0; i < image_master.height; i++)
+    for (i = 0; i < image_master.height; i++)
     {
-        for (int j = 0; j < image_master.width; j++)
+        for (j = 0; j < image_master.width; j++)
         {
             int value = image_get(image_master, i, j);
             image_put(*image_copy, value, i, j);
@@ -119,7 +119,22 @@ void image_put(image_type image, int value, int i, int j)
 {
     *((int*) image.data + i * image.width + j) = value;
 
+    return;
 }
+
+double image_fget(image_type image, int i, int j)
+{
+    /* 'Quick 'n dirty' accessing, no sanity checks */
+    return *((double*) image.data + i * image.width + j);  
+}
+
+void image_fput(image_type image, double value, int i, int j)
+{
+    *((double*) image.data + i * image.width + j) = value;
+
+    return;
+}
+
 
 int image_mirror_boundary_x(image_type image, int j)
 {
