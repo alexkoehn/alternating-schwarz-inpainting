@@ -171,7 +171,6 @@ int mask_belhachmi_init(const image_type image, image_type
     abs_mean /= (image_f.height * image_f.width);
 
     /* Compute Lambda and multiply it pointwise with the image */
-    //TODO mask is zero if lambda is multiplied with fval 
     lambda = compression_ratio * 255.0 / abs_mean;
 
     for (i = 0; i < image_f.height; i++)
