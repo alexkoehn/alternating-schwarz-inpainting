@@ -17,7 +17,14 @@ int floyd_steinberg_dithering(const image_type image, image_type
     }
 
     /* First create a working copy of image */
-    ret = image_copy(image, image_dithered);
+    ret = image_init(image_dithered, image.width, image.height, image.dtype);
+
+    if (ret != ASI_EXIT_SUCCESS)
+    {
+        return ret;
+    }
+
+    ret = image_copy(image, *image_dithered);
 
     if (ret != ASI_EXIT_SUCCESS)
     {
@@ -32,8 +39,6 @@ int floyd_steinberg_dithering(const image_type image, image_type
             value_old = image_get(*image_dithered, i, j);
 
             /* Put new value depending on if it is closer to 0 or 255 */
-            value_new;
-            
             if (value_old > 127)
             {
                 value_new = 255; 

@@ -13,6 +13,8 @@
 #define ASI_EXIT_FILE_NOT_FOUND 107
 #define ASI_EXIT_FILE_OPEN_FAILED 108
 #define ASI_EXIT_INVALID_ARG_COUNT 109
+#define ASI_EXIT_IMG_DIM_MISMATCH 110
+#define ASI_EXIT_IMG_DTYPE_MISMATCH 111
 #define ASI_EXIT_OUT_OF_BOUNDS -99
 #define ASI_NOT_IMPLEMENTED_YET 999
 
@@ -40,16 +42,16 @@ int image_init (image_type *image, int width, int height,
         dtype_enum dtype);
 
 /* Initialise new image struct by copying existing one */
-int image_copy (const image_type image_master, image_type *image_copy);
+int image_copy (const image_type src, image_type target);
 
 /* Free memory */
 void image_delete (image_type *image);
 
 /* Accessing image pixels */
 int image_get(image_type image, int i, int j);
-int * image_cget(image_type image, int i, int j);
+int * image_get_rgb(image_type image, int i, int j);
 double image_fget(image_type image, int i, int j);
-double * image_cfget(image_type image, int i, int j);
+double * image_fget_rgb(image_type image, int i, int j);
 
 /* Writing image pixels */
 void image_put(image_type image, int value, int i, int j);
