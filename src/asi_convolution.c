@@ -188,7 +188,7 @@ void image_convolution_2d(const image_type src, image_type target,
 
                     /* Evaluate convolution at position (i+k,j+l) */
                     img_val 
-                        = (double) image_get(src, i_shifted, j_shifted);
+                        = (double) image_fget(src, i_shifted, j_shifted);
                     k_val = (double) kernel.weights[(k+half_h) 
                         * kernel.height + l + half_w];
 
@@ -198,7 +198,7 @@ void image_convolution_2d(const image_type src, image_type target,
             }
 
             /* Add convolution result to pixel at location (i,j) */
-            image_put(target, conv_sum, i, j);
+            image_fput(target, conv_sum, i, j);
         }
     }
 
@@ -246,7 +246,7 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
                 j_shifted = image_mirror_boundary_x(src, j+k);
 
                 /* Evaluate convolution at position (i, j+k) */
-                img_val = (double) image_get(src, i, j_shifted);
+                img_val = (double) image_fget(src, i, j_shifted);
                 k_val = (double) kernel.weights[k + half_w];
 
                 /* Add integrand to convolution sum */
@@ -301,11 +301,16 @@ void image_convolution_2d_seperable(const image_type src, image_type target,
  *  @image  [I/O] Image to be convolved 
  *  @kernel [ I ] Convolution kernel
  */
-// TODO Pointer to image needed?
 int image_convolve(image_type image, const kernel_type kernel)
 {
     int i, j; /* Loop variables */
     image_type result; /* Temporary image for holding convolution results */
+    
+    /* Check that the input is double-valued */
+    if (image.dtype != ASI_DTYPE_DOUBLE)
+    {
+        return ASI_EXIT_INVALID_DTYPE;
+    }
     
     /* Initialise temporary image by zeros */
     image_init(&result, image.width, image.height, ASI_DTYPE_DOUBLE);
@@ -326,7 +331,7 @@ int image_convolve(image_type image, const kernel_type kernel)
         for (j = 0; j < image.width; j++)
         {
             double value = image_fget(result, i, j);
-            image_put(image, value, i, j);
+            image_fput(image, value, i, j);
         }
     }
 

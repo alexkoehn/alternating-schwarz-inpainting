@@ -41,8 +41,12 @@ typedef struct image
 int image_init (image_type *image, int width, int height, 
         dtype_enum dtype);
 
-/* Initialise new image struct by copying existing one */
+/* Copy image */
 int image_copy (const image_type src, image_type target);
+
+/* Convert data type */
+int image_convert_dtype(const image_type src, image_type target, 
+        dtype_enum target_dtype);
 
 /* Free memory */
 void image_delete (image_type *image);

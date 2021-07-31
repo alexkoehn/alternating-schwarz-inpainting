@@ -1,6 +1,7 @@
 #include "asi_image.h"
 #include <stdlib.h>
 #include <limits.h>
+#include <math.h>
 
 /*----------------------------------------------------------------------------*/
 
@@ -111,14 +112,10 @@ int image_copy (const image_type src, image_type target)
         return ASI_EXIT_IMG_DIM_MISMATCH;
     }
 
-    if (src.dtype != target.dtype)
-    {
-        return ASI_EXIT_IMG_DTYPE_MISMATCH;
-    }
-
     //TODO accomodate other dtypes
-    /* Copy image pixel by pixel */
-    if (src.dtype == ASI_DTYPE_INT || src.dtype == ASI_DTYPE_BOOLEAN)
+    /* Copy int-valued image */
+    if ((src.dtype == ASI_DTYPE_INT || src.dtype == ASI_DTYPE_BOOLEAN) 
+            && target.dtype == ASI_DTYPE_INT)
     {
         for (i = 0; i < src.height; i++)
         {
@@ -129,7 +126,8 @@ int image_copy (const image_type src, image_type target)
             }
         }
     }
-    else if (src.dtype == ASI_DTYPE_DOUBLE)
+    /* Copy double-valued image */
+    else if (src.dtype == ASI_DTYPE_DOUBLE && target.dtype == ASI_DTYPE_DOUBLE)
     {
         for (i = 0; i < src.height; i++)
         {
@@ -140,9 +138,34 @@ int image_copy (const image_type src, image_type target)
             }
         }
     }
+    /* Convert from int to double */
+    else if (src.dtype == ASI_DTYPE_INT && target.dtype == ASI_DTYPE_DOUBLE)
+    {
+        for (i = 0; i < src.height; i++)
+        {
+            for (j = 0; j < src.width; j++)
+            {
+               dval = image_get(src, i, j); 
+               image_fput(target, (double)dval, i, j);
+            }
+        }
+    }
+    /* Convert from double to int */
+    else if (src.dtype == ASI_DTYPE_DOUBLE && target.dtype == ASI_DTYPE_INT)
+    {
+        for (i = 0; i < src.height; i++)
+        {
+            for (j = 0; j < src.width; j++)
+            {
+               fval = image_fget(src, i, j); 
+               image_put(target, (int) round(fval), i, j);
+            }
+        }
+    }
     else
     {
-        return ASI_NOT_IMPLEMENTED_YET; // Note: should never be reached
+        /* Everything else, not supported as of now */
+        return ASI_EXIT_IMG_DTYPE_MISMATCH;
     }
 
     return ASI_EXIT_SUCCESS;
@@ -347,4 +370,3 @@ int image_min(image_type image, int *min)
 
     return ASI_EXIT_SUCCESS;
 }
-    
