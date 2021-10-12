@@ -38,6 +38,7 @@ typedef struct image
 } image_type;
 
 /* Allocate memory for image struct */
+// TODO rename: image_init -> image_new
 int image_init (image_type *image, int width, int height, 
         dtype_enum dtype);
 
